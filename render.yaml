@@ -1,0 +1,15 @@
+# Render.com Blueprint - https://dashboard.render.com/select-repo?type=blueprint
+# Create a free web service from this GitHub repo:
+#   1. Push this repo to GitHub
+#   2. Render dashboard -> New -> Blueprint instance -> pick the repo
+# The service builds with the Dockerfile and listens on the injected $PORT.
+services:
+  - type: web
+    name: dhanyamart
+    runtime: docker
+    repo: https://github.com/buildwithdhanya/capstone.git
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /login.jsp
+    autoDeploy: true

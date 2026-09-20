@@ -1,9 +1,10 @@
 package com.dhanyamart.dao;
 
 import com.dhanyamart.model.User;
+import com.dhanyamart.util.CellUtil;
 import com.dhanyamart.util.ExcelUtil;
 import com.dhanyamart.util.PasswordUtil;
-import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -11,19 +12,28 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Data Access Object - every operation that touches users.xlsx goes through
  * this class. This is the ONLY class the controllers talk to for user data,
  * so if you later switch to MySQL you only have to change this file
  * (that is where a JDBC connection would plug in).
+ *
+ * Role column (optional, appended at index 7): CUSTOMER, SELLER or ADMIN.
+ * Accounts created through the register form are always CUSTOMER.
  */
 public class UserDAO {
+
+    public static final String ROLE_CUSTOMER = "CUSTOMER";
+    public static final String ROLE_SELLER = "SELLER";
+    public static final String ROLE_ADMIN = "ADMIN";
 
     private static final DateTimeFormatter TIMESTAMP =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    // Column indexes must match the header order in ExcelUtil.HEADERS
+    // Column indexes must match the header order in ExcelUtil.USER_HEADERS
     private static final int COL_ID = 0;
     private static final int COL_NAME = 1;
     private static final int COL_EMAIL = 2;
@@ -31,6 +41,7 @@ public class UserDAO {
     private static final int COL_PHONE = 4;
     private static final int COL_ADDRESS = 5;
     private static final int COL_CREATED_AT = 6;
+    private static final int COL_ROLE = 7;
 
     /** Returns true if a row with the given email already exists. */
     public boolean emailExists(String email) {
@@ -46,7 +57,7 @@ public class UserDAO {
             try (Workbook wb = ExcelUtil.openOrCreate()) {
                 for (Row row : wb.getSheetAt(0)) {
                     if (row.getRowNum() == 0) continue; // skip header
-                    if (email.equalsIgnoreCase(cellValue(row, COL_EMAIL))) {
+                    if (email.equalsIgnoreCase(CellUtil.str(row, COL_EMAIL))) {
                         return rowToUser(row);
                     }
                 }
@@ -55,6 +66,88 @@ public class UserDAO {
             }
         }
         return null;
+    }
+
+    /** Finds a user by numeric id. */
+    public User findById(int userId) {
+        synchronized (ExcelUtil.LOCK) {
+            try (Workbook wb = ExcelUtil.openOrCreate()) {
+                for (Row row : wb.getSheetAt(0)) {
+                    if (row.getRowNum() == 0) continue;
+                    if (CellUtil.asInt(row, COL_ID) == userId) {
+                        User u = rowToUser(row);
+                        u.setPassword(null); // never pass the hash around
+                        return u;
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not read users.xlsx", e);
+            }
+        }
+        return null;
+    }
+
+    /** Returns every user saved in users.xlsx (safest for the admin dashboard). */
+    public List<User> listAll() {
+        List<User> result = new ArrayList<>();
+        synchronized (ExcelUtil.LOCK) {
+            try (Workbook wb = ExcelUtil.openOrCreate()) {
+                for (Row row : wb.getSheetAt(0)) {
+                    if (row.getRowNum() == 0) continue;
+                    User u = rowToUser(row);
+                    u.setPassword(null);
+                    result.add(u);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not read users.xlsx", e);
+            }
+        }
+        return result;
+    }
+
+    /** Returns the role ("CUSTOMER" when a row has none, e.g. legacy data). */
+    public String getRole(int userId) {
+        synchronized (ExcelUtil.LOCK) {
+            try (Workbook wb = ExcelUtil.openOrCreate()) {
+                for (Row row : wb.getSheetAt(0)) {
+                    if (row.getRowNum() == 0) continue;
+                    if (CellUtil.asInt(row, COL_ID) == userId) {
+                        return roleOrDefault(CellUtil.str(row, COL_ROLE));
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not read users.xlsx", e);
+            }
+        }
+        return ROLE_CUSTOMER;
+    }
+
+    /** Changes a user's role (admin action). */
+    public boolean updateRole(int userId, String role) {
+        if (role == null || role.isBlank()) {
+            return false;
+        }
+        String normalized = role.trim().toUpperCase();
+        if (!normalized.equals(ROLE_CUSTOMER) && !normalized.equals(ROLE_SELLER)
+                && !normalized.equals(ROLE_ADMIN)) {
+            return false;
+        }
+        synchronized (ExcelUtil.LOCK) {
+            try (Workbook wb = ExcelUtil.openOrCreate()) {
+                Sheet sheet = wb.getSheetAt(0);
+                for (Row row : sheet) {
+                    if (row.getRowNum() == 0) continue;
+                    if (CellUtil.asInt(row, COL_ID) == userId) {
+                        row.createCell(COL_ROLE).setCellValue(normalized);
+                        ExcelUtil.saveUsers(wb);
+                        return true;
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not update users.xlsx", e);
+            }
+        }
+        return false;
     }
 
     /**
@@ -70,8 +163,8 @@ public class UserDAO {
                 for (Row row : wb.getSheetAt(0)) {
                     if (row.getRowNum() == 0) continue; // skip header
 
-                    if (email.equalsIgnoreCase(cellValue(row, COL_EMAIL))) {
-                        String storedHash = cellValue(row, COL_PASSWORD);
+                    if (email.equalsIgnoreCase(CellUtil.str(row, COL_EMAIL))) {
+                        String storedHash = CellUtil.str(row, COL_PASSWORD);
                         if (PasswordUtil.verifyPassword(rawPassword, storedHash)) {
                             User user = rowToUser(row);
                             user.setPassword(null); // never pass the hash around
@@ -90,6 +183,7 @@ public class UserDAO {
     /**
      * Adds a new user row to users.xlsx. The password is hashed before saving.
      * Returns false if the email is already taken (nothing is written).
+     * New registrations always get the CUSTOMER role.
      */
     public boolean registerUser(User user) {
         synchronized (ExcelUtil.LOCK) {
@@ -100,11 +194,12 @@ public class UserDAO {
                 // do not trust a stale read from the servlet).
                 for (Row row : sheet) {
                     if (row.getRowNum() == 0) continue;
-                    if (user.getEmail().equalsIgnoreCase(cellValue(row, COL_EMAIL))) {
+                    if (user.getEmail().equalsIgnoreCase(CellUtil.str(row, COL_EMAIL))) {
                         return false;
                     }
                 }
 
+                ensureHeader(sheet);
                 int newId = nextUserId(sheet);
                 Row row = sheet.createRow(sheet.getLastRowNum() + 1);
 
@@ -116,12 +211,28 @@ public class UserDAO {
                 row.createCell(COL_PHONE).setCellValue(user.getPhone());
                 row.createCell(COL_ADDRESS).setCellValue(user.getAddress());
                 row.createCell(COL_CREATED_AT).setCellValue(LocalDateTime.now().format(TIMESTAMP));
+                row.createCell(COL_ROLE).setCellValue(roleOrDefault(user.getRole()));
 
-                ExcelUtil.save(wb);
+                ExcelUtil.saveUsers(wb);
                 return true;
             } catch (IOException e) {
                 throw new RuntimeException("Could not write users.xlsx", e);
             }
+        }
+    }
+
+    /** Internal: registers a user with an explicit role (used by the DataSeeder). */
+    public boolean registerUser(User user, String role) {
+        user.setRole(role);
+        return registerUser(user);
+    }
+
+    /** If the header row predates the role column, add a "role" header cell. */
+    private void ensureHeader(Sheet sheet) {
+        Row header = sheet.getRow(0);
+        if (header != null && header.getCell(COL_ROLE) == null) {
+            Cell cell = header.createCell(COL_ROLE);
+            cell.setCellValue("role");
         }
     }
 
@@ -130,12 +241,8 @@ public class UserDAO {
         int max = 1000;
         for (Row row : sheet) {
             if (row.getRowNum() == 0) continue;
-            try {
-                int id = Integer.parseInt(cellValue(row, COL_ID));
-                if (id > max) max = id;
-            } catch (NumberFormatException ignored) {
-                // ignore bad cells
-            }
+            int id = CellUtil.asInt(row, COL_ID);
+            if (id > max) max = id;
         }
         return max + 1;
     }
@@ -143,37 +250,21 @@ public class UserDAO {
     /** Maps one Excel row into a User object. */
     private User rowToUser(Row row) {
         User user = new User();
-        user.setUserId(parseInt(cellValue(row, COL_ID)));
-        user.setName(cellValue(row, COL_NAME));
-        user.setEmail(cellValue(row, COL_EMAIL));
-        user.setPassword(cellValue(row, COL_PASSWORD));
-        user.setPhone(cellValue(row, COL_PHONE));
-        user.setAddress(cellValue(row, COL_ADDRESS));
-        user.setCreatedAt(cellValue(row, COL_CREATED_AT));
+        user.setUserId(CellUtil.asInt(row, COL_ID));
+        user.setName(CellUtil.str(row, COL_NAME));
+        user.setEmail(CellUtil.str(row, COL_EMAIL));
+        user.setPassword(CellUtil.str(row, COL_PASSWORD));
+        user.setPhone(CellUtil.str(row, COL_PHONE));
+        user.setAddress(CellUtil.str(row, COL_ADDRESS));
+        user.setCreatedAt(CellUtil.str(row, COL_CREATED_AT));
+        user.setRole(roleOrDefault(CellUtil.str(row, COL_ROLE)));
         return user;
     }
 
-    /** Safely reads a cell as a String, whatever its stored type is. */
-    private String cellValue(Row row, int col) {
-        if (row.getCell(col) == null) {
-            return "";
+    private String roleOrDefault(String role) {
+        if (role == null || role.isBlank()) {
+            return ROLE_CUSTOMER;
         }
-        CellType type = row.getCell(col).getCellType();
-        switch (type) {
-            case STRING:
-                return row.getCell(col).getStringCellValue();
-            case NUMERIC:
-                return String.valueOf((long) row.getCell(col).getNumericCellValue());
-            default:
-                return "";
-        }
-    }
-
-    private int parseInt(String value) {
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (Exception e) {
-            return 0;
-        }
+        return role.toUpperCase();
     }
 }

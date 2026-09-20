@@ -61,6 +61,8 @@ input[type="text"],
 input[type="email"],
 input[type="tel"],
 input[type="password"],
+input[type="number"],
+input[type="search"],
 textarea {
     width: 100%;
     padding: 10px 12px;
@@ -169,4 +171,470 @@ textarea {
 .card p {
     margin-bottom: 8px;
     color: #334155;
+}
+
+/* ============================================
+   Store pages (products, cart, checkout, dashboards)
+   ============================================ */
+
+/* Auth pages keep the centered flex layout; store pages use a block layout. */
+body.app-body {
+    display: block;
+}
+
+.container.page {
+    max-width: 1160px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    background: #ffffff;
+    padding: 32px;
+    margin: 0 auto;
+}
+
+/* Top bar navigation */
+.topbar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+}
+
+.nav-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.nav-group .brand {
+    text-decoration: none;
+}
+
+.nav-link {
+    color: #334155;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.nav-link:hover {
+    color: #1f8a70;
+}
+
+.nav-user {
+    color: #6b7b8c;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Links styled as cards on the home page */
+.card.link-card {
+    display: block;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.card.link-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(31, 138, 112, 0.15);
+}
+
+.card.link-card h3 {
+    color: #1f3b4d;
+    margin-bottom: 6px;
+}
+
+/* Grids */
+.grid {
+    display: grid;
+    gap: 18px;
+    margin: 22px 0;
+}
+
+.grid-3 {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* Search / filter bar */
+.search-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.search-input {
+    flex: 1 1 220px;
+    width: auto;
+}
+
+.search-select {
+    padding: 10px 12px;
+    border: 1px solid #ccd6dd;
+    border-radius: 6px;
+    font-size: 15px;
+    background: #ffffff;
+    color: #334155;
+    font-family: inherit;
+}
+
+/* Product cards */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.product-image {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #f1f5f9;
+}
+
+.product-category {
+    color: #1f8a70;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 10px 0 2px;
+}
+
+.product-name {
+    color: #1f3b4d;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.product-name a {
+    color: #1f3b4d;
+    text-decoration: none;
+}
+
+.product-name a:hover {
+    color: #1f8a70;
+}
+
+.product-desc {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    flex: 1;
+}
+
+.product-price {
+    color: #1f8a70;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.product-price-lg {
+    font-size: 26px;
+    margin-bottom: 10px;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.badge-stock  { background: #e8f5ee; color: #1f7a4d; }
+.badge-out    { background: #fdecea; color: #b23b3b; }
+.badge-success{ background: #e8f5ee; color: #1f7a4d; }
+.badge-danger { background: #fdecea; color: #b23b3b; }
+.badge-warn   { background: #fff4e0; color: #b07f1f; }
+.badge-info   { background: #e8f1fb; color: #2b6cb0; }
+
+/* Ratings */
+.rating-line {
+    font-size: 14px;
+    color: #334155;
+    margin-bottom: 8px;
+}
+
+.stars {
+    color: #e6a817;
+    letter-spacing: 2px;
+}
+
+.muted {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* Product detail page */
+.detail-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 30px;
+    margin: 22px 0;
+}
+
+.detail-image img {
+    width: 100%;
+    border-radius: 10px;
+    background: #f1f5f9;
+}
+
+.buy-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.qty-input {
+    width: 80px !important;
+    text-align: center;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 28px 0;
+}
+
+/* Reviews */
+.review-form {
+    margin-bottom: 18px;
+}
+
+.review-form h3 {
+    margin-bottom: 12px;
+}
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.review-item {
+    margin: 0;
+}
+
+.review-item p {
+    margin-bottom: 6px;
+}
+
+/* Tables */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    background: #ffffff;
+}
+
+.table thead th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 13px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eef2f6;
+    font-size: 14px;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.table tfoot td {
+    padding: 10px 12px;
+    font-weight: 700;
+    color: #1f3b4d;
+}
+
+.thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #f1f5f9;
+}
+
+.cell-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cell-actions {
+    white-space: nowrap;
+}
+
+.inline-form {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 0;
+}
+
+.right {
+    text-align: right;
+}
+
+/* Action rows and button variants */
+.action-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 18px 0;
+}
+
+.btn-ghost {
+    background: #ffffff;
+    color: #1f8a70;
+    border: 1px solid #1f8a70;
+}
+
+.btn-ghost:hover {
+    background: #e8f5ee;
+}
+
+.btn-danger {
+    background: #e74c3c;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+/* Checkout */
+.checkout-form {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.order-summary h3 {
+    margin-bottom: 12px;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.right-muted {
+    margin-left: auto;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+}
+
+/* Order cards on My Orders */
+.order-card {
+    margin-bottom: 16px;
+}
+
+.order-head {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.order-items {
+    list-style: none;
+    margin: 8px 0;
+}
+
+.order-items li {
+    font-size: 14px;
+    color: #334155;
+    margin-bottom: 4px;
+}
+
+.order-card .switch {
+    text-align: left;
+    margin-top: 10px;
+}
+
+/* Empty states */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+/* Admin stat cards */
+.stat-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.stat {
+    text-align: center;
+    padding: 24px 16px;
+}
+
+.stat-number {
+    display: block;
+    font-size: 30px;
+    font-weight: 800;
+    color: #1f3b4d;
+    margin-bottom: 6px;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.tab {
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #334155;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.tab:hover {
+    background: #f1f5f9;
+}
+
+.tab.active {
+    background: #1f8a70;
+    color: #ffffff;
+}
+
+/* Two-column form row (seller product form) */
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+@media (max-width: 720px) {
+    .detail-row { grid-template-columns: 1fr; }
+    .form-row-2 { grid-template-columns: 1fr; }
 }

@@ -1,10 +1,11 @@
-# DhanyaMart - Authentication Module
+# DhanyaMart - Handicrafts E-commerce Web Application
 
 Java + JSP + Servlets + Apache POI e-commerce capstone project.
-This module covers ONLY: **Register -> Login -> Session -> Protected Home -> Logout**.
+The full flow is implemented: **Register -> Login -> Product catalogue -> Search/Filter ->
+Product details + reviews -> Cart -> Checkout -> Orders, plus Seller and Admin dashboards**.
 
-All user data is stored in an **Excel `.xlsx` file** (no MySQL). Passwords are
-never stored in plain text - each one is salted and hashed with PBKDF2.
+All data is stored in **Excel `.xlsx` files** (no MySQL). Passwords are never stored
+in plain text - each one is salted and hashed with PBKDF2.
 
 ---
 
@@ -17,142 +18,130 @@ Dhanya capstone/
 │   ├── controller/
 │   │   ├── LoginServlet.java                 /login
 │   │   ├── RegisterServlet.java              /register
-│   │   └── LogoutServlet.java                /logout
-│   ├── dao/UserDAO.java                      all users.xlsx read/write logic
-│   ├── model/User.java                       user bean (POJO)
+│   │   ├── LogoutServlet.java                /logout
+│   │   ├── ProductsServlet.java              /products          (browse + search/filter)
+│   │   ├── ProductDetailsServlet.java        /product?id=N      (details + reviews)
+│   │   ├── ReviewServlet.java                /review            (POST, add rating)
+│   │   ├── CartServlet.java                  /cart              (session cart)
+│   │   ├── CheckoutServlet.java              /checkout          (place order)
+│   │   ├── OrderConfirmationServlet.java     /order-confirm?id=N
+│   │   ├── OrdersServlet.java                /orders            (my orders)
+│   │   ├── SellerProductsServlet.java        /seller/products   (seller dashboard)
+│   │   ├── SellerProductServlet.java         /seller/product    (add/edit/delete)
+│   │   ├── AdminServlet.java                 /admin             (overview/users/products/orders)
+│   │   ├── SellerAccess.java                 shared seller/admin role checks
+│   │   └── DataSeeder.java                   seeds demo accounts, products, reviews
+│   ├── dao/UserDAO.java                      users.xlsx logic
+│   ├── dao/ProductDAO.java                   products.xlsx logic
+│   ├── dao/OrderDAO.java                     orders.xlsx logic
+│   ├── dao/ReviewDAO.java                    reviews.xlsx logic
+│   ├── model/                                User, Product, CartItem, Order, OrderItem, Review
 │   └── util/
-│       ├── ExcelUtil.java                    open/create/save the Excel file
+│       ├── ExcelUtil.java                    open/create/save the Excel files
+│       ├── CellUtil.java                     cell read/write helpers
 │       └── PasswordUtil.java                 PBKDF2 hash + verify
 └── src/main/webapp/
     ├── WEB-INF/web.xml
-    ├── login.jsp
-    ├── register.jsp
-    ├── home.jsp                              (protected page)
-    └── css/style.css
+    ├── login.jsp / register.jsp / home.jsp
+    ├── products.jsp / product.jsp / cart.jsp / checkout.jsp
+    ├── orders.jsp / order-confirm.jsp / admin.jsp
+    ├── seller/products.jsp / seller/product-form.jsp
+    ├── _nav.jsp                              shared navigation bar
+    ├── css/style.css
+    └── images/products/*.svg                 placeholder product images
 ```
 
-> Note: because this is a Maven project the source lives under `src/main/java`
-> and the web content under `src/main/webapp` (this maps to the `com.dhanyamart/`
-> and `webapp/` folders from the requirement).
+> Because this is a Maven project the source lives under `src/main/java`
+> and the web content under `src/main/webapp`.
 
 ## 2. Apache POI dependencies (handled by Maven)
 
-`pom.xml` declares:
+`pom.xml` declares `poi-ooxml` 5.2.5; Maven pulls in `poi`, `poi-ooxml-lite`,
+`xmlbeans`, `commons-collections4`, `commons-compress`, `log4j-api`, etc.
+No manual jar downloads needed.
 
-```xml
-<dependency>
-    <groupId>org.apache.poi</groupId>
-    <artifactId>poi-ooxml</artifactId>
-    <version>5.2.5</version>
-</dependency>
-```
+## 3. How the Excel data files work
 
-Maven automatically downloads `poi-ooxml` plus its transitive jars
-(`poi`, `poi-ooxml-lite`, `xmlbeans`, `commons-collections4`, `commons-compress`,
-`log4j-api`, `commons-math3`, `commons-io`, ...). No manual jar downloads needed.
+Location: **`<user home>\dhanyamart-data\`** (Windows: `C:\Users\<you>\dhanyamart-data\`).
+Created **automatically on first run** (header rows written by `ExcelUtil`).
+To use a different folder, set the system property `dhanyamart.data.dir` or the
+environment variable `DHANYAMART_DATA_DIR`.
 
-## 3. How the Excel data file works
+| File         | Contents                                              |
+|--------------|-------------------------------------------------------|
+| users.xlsx   | user_id, name, email, password (salt:hash), phone, address, created_at, role |
+| products.xlsx| product_id, seller_id, name, category, description, price, stock, image, created_at |
+| orders.xlsx  | order_id, user info, phone, address, order_date, status, total, items |
+| reviews.xlsx | review_id, product_id, user_id, user_name, rating, comment, created_at |
 
-- Location: **`<user home>\dhanyamart-data\users.xlsx`**
-  (Windows: `C:\Users\<you>\dhanyamart-data\users.xlsx`)
-- Created **automatically on first run** (header row written by `ExcelUtil`).
-- To use a different folder, set the system property `dhanyamart.data.dir`
-  or the environment variable `DHANYAMART_DATA_DIR`.
+Order line items are stored in the `items` cell as `productId|name|price|qty;` (repeated).
+The `password` cell holds a PBKDF2 `salt:hash` value that can never be converted back.
 
-Columns (row 0 = header):
+## 4. Demo accounts (auto-seeded on first start)
 
-| user_id | name | email | password | phone | address | created_at |
-|---------|------|-------|----------|-------|---------|------------|
-| 1001    | ...  | ...   | salt:hash | ...  | ...     | 2026-08-12 10:30:00 |
+| Role     | Email                  | Password   |
+|----------|------------------------|------------|
+| Admin    | admin@dhanyamart.com   | Admin@123  |
+| Seller   | seller@dhanyamart.com  | Seller@123 |
+| Customer | demo@dhanyamart.com    | Demo@123   |
 
-The `password` cell holds a PBKDF2 `salt:hash` value, e.g. `oKx7fH2n...:Qk4EwRtY...`
-It can never be converted back to the real password.
+`DataSeeder` also loads 15 example products and a few reviews the first time
+products.xlsx is created. Nothing is overwritten on later starts.
 
----
+> Note: deleting the files under `dhanyamart-data` resets the app, and the
+> demo accounts/products are re-seeded on the next restart.
 
-## 4. Setup steps
+## 5. Setup steps
 
-**Prerequisites**
-- JDK 17 (already installed on this machine)
-- Apache Maven 3.8+ (install or use Eclipse m2e - see below)
-- Apache Tomcat 10.1 or 11
+**Prerequisites:** JDK 17, Apache Maven 3.8+, Apache Tomcat 10.1+.
 
-**Option A - Run with Eclipse (recommended if no Maven on PATH)**
-1. Eclipse > File > Import > *Existing Maven Projects* > browse to this folder > Finish.
-2. Window > Preferences > Server > Runtime Environments > Add > Tomcat v10.1 (or v11),
-   select your Tomcat folder. (Required only if you want Run-as on Server.)
+**Option A - Eclipse:**
+1. File > Import > *Existing Maven Projects* > browse to this folder > Finish.
+2. Window > Preferences > Server > Runtime Environments > Add > Tomcat v10.1.
 3. Right-click the project > *Run As* > *Run on Server* > choose Tomcat.
 
-**Option B - Build from the command line**
-1. Install Maven and add it to `PATH`.
-2. Open a terminal in this folder and run:
-   ```
-   mvn clean package
-   ```
-3. This produces `target/DhanyaMart.war`. Copy it into `TOMCAT_HOME\webapps\`,
-   then start Tomcat (`bin\startup.bat`).
+**Option B - Command line:**
+```
+mvn clean package
+```
+This produces `target/DhanyaMart.war`. Copy it into `TOMCAT_HOME\webapps\`,
+then start Tomcat (`bin\startup.bat`).
 
-**No database setup is required.** The Excel file is created on first request.
+**No database setup is required** - the Excel files are created on first request.
 
----
+## 6. Testing steps
 
-## 5. Testing steps
+Open **http://localhost:8080/DhanyaMart/** in a browser. Role-based access:
 
-Open **http://localhost:8080/DhanyaMart/** in a browser.
+- **Admin** - `admin@dhanyamart.com` / `Admin@123`
+  - `/admin` dashboard: overview stats, manage user roles, delete products, update order status.
+  - Also has access to `/seller/products`.
+- **Seller** - `seller@dhanyamart.com` / `Seller@123`
+  - `/seller/products`: their product list (admin sees all), add/edit/delete products.
+  - `/seller/product`: add/edit product form with server-side validation.
+- **Customer** - `demo@dhanyamart.com` / `Demo@123` (or register a new account)
+  - Browse/search/filter `/products`, view `/product?id=N` with reviews.
+  - Add to cart, update quantities, `/checkout` (validates 10-digit phone), see
+    `/order-confirm?id=N` and `/orders`.
+  - Leave a rating on a product page (one review per product per user).
 
-1. **Access control**
-   - Opening the root URL redirects you to `login.jsp` because you are not logged in.
-   - Try opening `http://localhost:8080/DhanyaMart/home.jsp` directly in a new tab -
-     it redirects back to `login.jsp` (protected page check).
+Guards: all protected pages redirect unauthenticated users to `login.jsp`; the
+seller pages require SELLER/ADMIN and `/admin` requires ADMIN.
 
-2. **Registration**
-   - Click *Create an account*, fill every field (valid email, 10-digit phone,
-     password + confirm password must match, address), submit.
-   - Success message -> redirected to login page.
-   - Try registering again with the **same email** -> duplicate-email error shown.
-   - Try short password / bad email / mismatched confirm -> error shown, fields re-filled.
-
-3. **Excel storage**
-   - Open `C:\Users\<you>\dhanyamart-data\users.xlsx` in Excel.
-   - A new row exists with your details. The `password` column contains a
-     **hash** (`salt:hash`), NOT your real password.
-
-4. **Login**
-   - Enter the email + password you registered with -> redirected to `home.jsp`
-     showing your name and email.
-   - Wrong password -> "Invalid email or password." error on `login.jsp`.
-
-5. **Session**
-   - On `home.jsp`, check *Session ID* matches the cookie. Keep the tab open.
-   - Open a second browser tab and go to `home.jsp` again - it works (session is shared).
-
-6. **Logout**
-   - Click *Logout* -> session destroyed -> back to `login.jsp`.
-   - Now visit `home.jsp` again -> redirected to `login.jsp` (session is gone).
-
-7. **Restart test**
-   - Stop and restart Tomcat, then login again with the same credentials.
-     Users persist because they live in the Excel file.
-
----
-
-## 6. Security checklist (already implemented)
+## 7. Security checklist (already implemented)
 
 - Passwords hashed with PBKDF2 + random salt, never stored plain text.
-- `home.jsp` redirects unauthenticated users (checked before any HTML output).
+- Protected JSPs/servlets redirect unauthenticated users before any output.
 - Same error message for unknown email / wrong password (no account enumeration).
 - Session fixation prevented via `request.changeSessionId()` after login.
-- User input escaped before being re-printed in JSPs (XSS protection).
-- Excel writes are guarded by a shared lock (thread-safe under concurrent requests).
+- User input escaped before re-printing in JSPs (XSS protection).
+- Server-side validation on product add/edit (name, category, description, price,
+  stock, image path) and checkout (name/phone/address).
+- Roles stored in session and re-checked on every admin/seller request.
+- Excel writes guarded by a shared lock (thread-safe under concurrent requests).
 
-## 7. Notes on "JDBC connectivity"
+## 8. "JDBC connectivity" note
 
-Storage is Excel via Apache POI, so **no JDBC/MySQL driver is used** in this module.
-`UserDAO` is the single place that touches user data - if you later add a real
-database, replace the DAO internals with a JDBC `DriverManager.getConnection(...)`
-connection and keep the same method names; no controller changes are needed.
-
-## 8. Switching to Tomcat 9 (if you ever need it)
-
-Replace `jakarta.servlet` imports with `javax.servlet` in the 3 servlet files and
-use `javax.servlet-api` 4.0.1 (provided) in `pom.xml`. Everything else stays the same.
+Storage is Excel via Apache POI, so no JDBC/MySQL driver is used. Each DAO is the
+single place that touches its data file - to switch to MySQL later, replace the DAO
+internals with JDBC and keep the same method names; controller/JSP changes are not needed.

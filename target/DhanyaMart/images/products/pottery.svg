@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf4e9"/>
+      <stop offset="1" stop-color="#ecd3b0"/>
+    </linearGradient>
+    <linearGradient id="ac" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b5651d"/>
+      <stop offset="1" stop-color="#8f4c12"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#bg)"/>
+  <circle cx="300" cy="170" r="95" fill="url(#ac)" opacity="0.9"/>
+  <text x="300" y="170" font-family="Segoe UI, Arial, sans-serif" font-size="52" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">POTTERY</text>
+  <text x="300" y="300" font-family="Segoe UI, Arial, sans-serif" font-size="22" fill="#7c4112" text-anchor="middle">Terracotta &amp; clay crafts</text>
+  <text x="300" y="350" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#a07a52" text-anchor="middle">DhanyaMart</text>
+</svg>

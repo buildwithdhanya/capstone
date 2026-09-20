@@ -11,6 +11,7 @@ public class User {
     private String password;      // holds the HASHED password when read from Excel
     private String phone;
     private String address;
+    private String role;
     private String createdAt;
 
     public User() {
@@ -70,6 +71,14 @@ public class User {
 
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     @Override
