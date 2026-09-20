@@ -75,13 +75,13 @@ public class DataSeeder implements ServletContextListener {
                 "images/products/painting.jpg", sellerId);
         add("Kalamkari Cotton Saree", "Textiles & Handloom",
                 "Handblock-printed Kalamkari saree in natural vegetable dyes on pure cotton.", 1499.00, 25,
-                "images/products/textile.jpg", sellerId);
+                "images/products/kalamkari.jpg", sellerId);
         add("Kasavu Kerala Cotton Saree", "Textiles & Handloom",
                 "Classic cream saree with gold kasavu border, handwoven on traditional looms.", 1799.00, 20,
-                "images/products/textile.jpg", sellerId);
+                "images/products/kasavu.jpg", sellerId);
         add("Kanchipuram Silk Dupatta", "Textiles & Handloom",
                 "Soft Kanchipuram silk dupatta with zari border, woven in temple-town looms.", 1299.00, 30,
-                "images/products/textile.jpg", sellerId);
+                "images/products/kanchipuram.jpg", sellerId);
         add("Terracotta Decor Pot (Set of 3)", "Pottery & Ceramics",
                 "Hollow terracotta pots in three sizes, fired in a traditional kiln.", 699.00, 40,
                 "images/products/pottery.jpg", sellerId);
@@ -99,7 +99,7 @@ public class DataSeeder implements ServletContextListener {
                 "images/products/wood.jpg", sellerId);
         add("Block-Printed Teak Coasters (Set of 6)", "Woodwork & Decor",
                 "Teak wood coasters printed with traditional hand-carved blocks.", 450.00, 50,
-                "images/products/wood.jpg", sellerId);
+                "images/products/coasters.jpg", sellerId);
         add("Cane & Bamboo Storage Basket", "Woodwork & Decor",
                 "Woven cane basket with bamboo frame, perfect for storage or decor.", 880.00, 22,
                 "images/products/basket.jpg", sellerId);
@@ -108,10 +108,10 @@ public class DataSeeder implements ServletContextListener {
                 "images/products/jewellery.jpg", sellerId);
         add("Brass Lakshmi Pendant", "Jewellery & Accessories",
                 "Hand-engraved brass Lakshmi pendant with cotton cord, antique oxidised finish.", 950.00, 16,
-                "images/products/jewellery.jpg", sellerId);
+                "images/products/pendant.jpg", sellerId);
         add("Handwoven Cotton Dhurrie Rug", "Textiles & Handloom",
                 "Thick cotton dhurrie rug in earthy stripes, woven on a flat loom.", 2100.00, 9,
-                "images/products/textile.jpg", sellerId);
+                "images/products/dhurrie.jpg", sellerId);
     }
 
     private void add(String name, String category, String description,

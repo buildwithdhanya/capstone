@@ -106,8 +106,9 @@
             <input type="text" id="image" name="image" value="<%= esc(fImage) %>"
                    placeholder="images/products/wood.jpg or an http(s) URL">
             <p class="muted">Leave as the default or use one of the bundled images
-                (art.jpg, painting.jpg, textile.jpg, pottery.jpg, diya.jpg, tiles.jpg,
-                brass.jpg, wood.jpg, basket.jpg, jewellery.jpg, generic.svg)
+                (art.jpg, painting.jpg, kalamkari.jpg, kasavu.jpg, kanchipuram.jpg,
+                pottery.jpg, diya.jpg, tiles.jpg, brass.jpg, wood.jpg, coasters.jpg,
+                basket.jpg, jewellery.jpg, pendant.jpg, dhurrie.jpg, generic.svg)
                 or any public image URL.</p>
         </div>
 

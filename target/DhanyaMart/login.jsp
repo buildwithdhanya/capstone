@@ -26,7 +26,7 @@
         <h1>Crafts with a story &amp; a soul.</h1>
         <p>Handloom textiles, folk paintings, pottery, wood and brass &mdash; made by Indian artisans, delivered to your doorstep.</p>
         <div class="auth-art">
-            <img src="images/products/textile.jpg" alt="Handloom textiles" loading="lazy">
+            <img src="images/products/kalamkari.jpg" alt="Block-printed fabric" loading="lazy">
             <img src="images/products/diya.jpg" alt="Clay diyas" loading="lazy">
             <img src="images/products/brass.jpg" alt="Brass lamp" loading="lazy">
         </div>
