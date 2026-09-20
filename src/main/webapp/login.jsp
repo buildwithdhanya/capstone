@@ -15,44 +15,85 @@
     <title>Login - DhanyaMart</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-<div class="container">
-    <div class="brand-mark">D</div>
-    <h1>DhanyaMart</h1>
-    <p class="subtitle">Handcrafted crafts from Indian artisans &mdash; sign in to continue.</p>
+<body class="auth-body">
+<div class="auth-shell">
 
-    <%
-        String error = (String) request.getAttribute("error");
-        String registered = request.getParameter("registered");
-        String email = request.getAttribute("email") != null
-                ? (String) request.getAttribute("email") : "";
-    %>
-
-    <% if (error != null) { %>
-        <div class="alert alert-error"><%= esc(error) %></div>
-    <% } %>
-
-    <% if ("1".equals(registered)) { %>
-        <div class="alert alert-success">Registration successful! Please login to continue.</div>
-    <% } %>
-
-    <form action="login" method="post" onsubmit="return validateLoginForm()">
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email"
-                   value="<%= esc(email) %>" placeholder="you@example.com" autofocus>
+    <aside class="auth-showcase">
+        <div class="auth-brand">
+            <span class="auth-brand-badge">D</span>
+            DhanyaMart
         </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Your password">
+        <h1>Crafts with a story &amp; a soul.</h1>
+        <p>Handloom textiles, folk paintings, pottery, wood and brass &mdash; made by Indian artisans, delivered to your doorstep.</p>
+        <div class="auth-art">
+            <img src="images/products/textile.jpg" alt="Handloom textiles" loading="lazy">
+            <img src="images/products/diya.jpg" alt="Clay diyas" loading="lazy">
+            <img src="images/products/brass.jpg" alt="Brass lamp" loading="lazy">
         </div>
-        <button type="submit" class="btn">Login</button>
-    </form>
+        <ul class="auth-points">
+            <li>Authentic handloom &amp; handicraft catalogue</li>
+            <li>Fair prices, straight from the artisans</li>
+            <li>Cash on delivery across all regions</li>
+        </ul>
+    </aside>
 
-    <p class="switch">New here? <a href="register.jsp">Create an account</a></p>
+    <main class="auth-panel">
+        <div class="auth-card">
+            <div class="brand-mark">D</div>
+            <h1>Welcome back</h1>
+            <p class="subtitle">Sign in to continue shopping.</p>
+
+            <%
+                String error = (String) request.getAttribute("error");
+                String registered = request.getParameter("registered");
+                String email = request.getAttribute("email") != null
+                        ? (String) request.getAttribute("email") : "";
+            %>
+
+            <% if (error != null) { %>
+                <div class="alert alert-error"><%= esc(error) %></div>
+            <% } %>
+
+            <% if ("1".equals(registered)) { %>
+                <div class="alert alert-success">Registration successful! Please login to continue.</div>
+            <% } %>
+
+            <form action="login" method="post" onsubmit="return validateLoginForm()">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email"
+                           value="<%= esc(email) %>" placeholder="you@example.com" autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Your password">
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+
+            <div class="demo-box">
+                <p>Try a demo account</p>
+                <div class="demo-row">
+                    <button type="button" class="demo-chip"
+                            onclick="fillDemo('demo@dhanyamart.com','Demo@123')">Customer</button>
+                    <button type="button" class="demo-chip"
+                            onclick="fillDemo('seller@dhanyamart.com','Seller@123')">Seller</button>
+                    <button type="button" class="demo-chip"
+                            onclick="fillDemo('admin@dhanyamart.com','Admin@123')">Admin</button>
+                </div>
+            </div>
+
+            <p class="switch">New here? <a href="register.jsp">Create an account</a></p>
+        </div>
+    </main>
+
 </div>
 
 <script>
+    function fillDemo(userEmail, userPassword) {
+        document.getElementById("email").value = userEmail;
+        document.getElementById("password").value = userPassword;
+    }
     function validateLoginForm() {
         var email = document.getElementById("email").value.trim();
         var password = document.getElementById("password").value;

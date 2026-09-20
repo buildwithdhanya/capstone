@@ -15,62 +15,90 @@
     <title>Register - DhanyaMart</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-<div class="container">
-    <div class="brand-mark">D</div>
-    <h1>DhanyaMart</h1>
-    <p class="subtitle">Create your account and start shopping for authentic crafts.</p>
+<body class="auth-body">
+<div class="auth-shell">
 
-    <%
-        String error = (String) request.getAttribute("error");
-        String name = request.getAttribute("name") != null
-                ? (String) request.getAttribute("name") : "";
-        String email = request.getAttribute("email") != null
-                ? (String) request.getAttribute("email") : "";
-        String phone = request.getAttribute("phone") != null
-                ? (String) request.getAttribute("phone") : "";
-        String address = request.getAttribute("address") != null
-                ? (String) request.getAttribute("address") : "";
-    %>
+    <aside class="auth-showcase">
+        <div class="auth-brand">
+            <span class="auth-brand-badge">D</span>
+            DhanyaMart
+        </div>
+        <h1>Join the artisan marketplace.</h1>
+        <p>Browse handlooms, folk art, pottery and more &mdash; every purchase supports a local craftsperson.</p>
+        <div class="auth-art">
+            <img src="images/products/art.jpg" alt="Folk art" loading="lazy">
+            <img src="images/products/pottery.jpg" alt="Pottery" loading="lazy">
+            <img src="images/products/jewellery.jpg" alt="Temple jewellery" loading="lazy">
+        </div>
+        <ul class="auth-points">
+            <li>Create one account for shopping &amp; orders</li>
+            <li>Rate products and help fellow buyers</li>
+            <li>Cash on delivery across all regions</li>
+        </ul>
+    </aside>
 
-    <% if (error != null) { %>
-        <div class="alert alert-error"><%= esc(error) %></div>
-    <% } %>
+    <main class="auth-panel">
+        <div class="auth-card container-wide">
+            <div class="brand-mark">D</div>
+            <h1>Create your account</h1>
+            <p class="subtitle">A few details and you are ready to shop.</p>
 
-    <form action="register" method="post" onsubmit="return validateRegisterForm()">
-        <div class="form-group">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" value="<%= esc(name) %>"
-                   placeholder="Your full name" autofocus>
-        </div>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" value="<%= esc(email) %>"
-                   placeholder="you@example.com">
-        </div>
-        <div class="form-group">
-            <label for="phone">Phone</label>
-            <input type="tel" id="phone" name="phone" value="<%= esc(phone) %>"
-                   placeholder="10-digit mobile number" maxlength="10">
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password"
-                   placeholder="At least 6 characters">
-        </div>
-        <div class="form-group">
-            <label for="confirmPassword">Confirm Password</label>
-            <input type="password" id="confirmPassword" name="confirmPassword"
-                   placeholder="Re-enter password">
-        </div>
-        <div class="form-group">
-            <label for="address">Address</label>
-            <textarea id="address" name="address" rows="3" placeholder="Delivery address"><%= esc(address) %></textarea>
-        </div>
-        <button type="submit" class="btn">Create Account</button>
-    </form>
+            <%
+                String error = (String) request.getAttribute("error");
+                String name = request.getAttribute("name") != null
+                        ? (String) request.getAttribute("name") : "";
+                String email = request.getAttribute("email") != null
+                        ? (String) request.getAttribute("email") : "";
+                String phone = request.getAttribute("phone") != null
+                        ? (String) request.getAttribute("phone") : "";
+                String address = request.getAttribute("address") != null
+                        ? (String) request.getAttribute("address") : "";
+            %>
 
-    <p class="switch">Already have an account? <a href="login.jsp">Login</a></p>
+            <% if (error != null) { %>
+                <div class="alert alert-error"><%= esc(error) %></div>
+            <% } %>
+
+            <form action="register" method="post" onsubmit="return validateRegisterForm()">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" value="<%= esc(name) %>"
+                           placeholder="Your full name" autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="<%= esc(email) %>"
+                           placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" name="phone" value="<%= esc(phone) %>"
+                           placeholder="10-digit mobile number" maxlength="10">
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password"
+                               placeholder="At least 6 chars">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword"
+                               placeholder="Re-enter password">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <textarea id="address" name="address" rows="3"
+                              placeholder="Delivery address"><%= esc(address) %></textarea>
+                </div>
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+
+            <p class="switch">Already have an account? <a href="login.jsp">Login</a></p>
+        </div>
+    </main>
+
 </div>
 
 <script>
