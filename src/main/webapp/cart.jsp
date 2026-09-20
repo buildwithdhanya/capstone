@@ -108,6 +108,8 @@
             <a href="checkout" class="btn btn-small">Proceed to Checkout &rarr;</a>
         </div>
     <% } %>
+
+    <%@ include file="_footer.jsp" %>
 </div>
 </body>
 </html>

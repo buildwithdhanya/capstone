@@ -35,11 +35,11 @@
 <div class="container page">
     <%@ include file="_nav.jsp" %>
 
-    <h1>Product Catalogue</h1>
-    <p class="subtitle">Search by name or description, or browse by category.</p>
+    <h1 class="page-title">Product Catalogue</h1>
+    <p class="subtitle" style="text-align:left">Search crafts, handlooms and decor &mdash; or browse by category.</p>
 
     <form action="products" method="get" class="search-bar">
-        <input type="text" name="q" value="<%= esc(q) %>" placeholder="Search rice, dal, ghee..."
+        <input type="text" name="q" value="<%= esc(q) %>" placeholder="Search for a craft, saree, pottery, art..."
                class="search-input">
         <select name="cat" class="search-select">
             <option value="">All categories</option>
@@ -55,27 +55,35 @@
     <% } else { %>
         <div class="grid grid-3 product-grid">
             <% for (Product p : products) { %>
-                <div class="card product-card">
-                    <a href="product?id=<%= p.getProductId() %>">
-                        <img src="<%= esc(p.getImage()) %>" alt="<%= esc(p.getName()) %>"
-                             class="product-image" loading="lazy">
-                    </a>
-                    <p class="product-category"><%= esc(p.getCategory()) %></p>
-                    <h3 class="product-name">
-                        <a href="product?id=<%= p.getProductId() %>"><%= esc(p.getName()) %></a>
-                    </h3>
-                    <p class="product-desc"><%= esc(p.getDescription()) %></p>
-                    <p class="product-price">&#8377;<%= p.getPriceText() %></p>
-                    <% if (p.isInStock()) { %>
-                        <p class="badge badge-stock">In stock: <%= p.getStock() %></p>
-                    <% } else { %>
-                        <p class="badge badge-out">Out of stock</p>
-                    <% } %>
-                    <a href="product?id=<%= p.getProductId() %>" class="btn btn-small">View Details</a>
-                </div>
+                <article class="card product-card">
+                    <div class="image-wrap">
+                        <a href="product?id=<%= p.getProductId() %>">
+                            <img src="<%= esc(p.getImage()) %>" alt="<%= esc(p.getName()) %>"
+                                 class="product-image" loading="lazy">
+                        </a>
+                        <a href="product?id=<%= p.getProductId() %>" class="btn btn-small">View Details</a>
+                    </div>
+                    <div class="product-body">
+                        <p class="product-category"><%= esc(p.getCategory()) %></p>
+                        <h3 class="product-name">
+                            <a href="product?id=<%= p.getProductId() %>"><%= esc(p.getName()) %></a>
+                        </h3>
+                        <p class="product-desc"><%= esc(p.getDescription()) %></p>
+                        <p class="product-price">&#8377;<%= p.getPriceText() %></p>
+                    </div>
+                    <div class="product-meta">
+                        <% if (p.isInStock()) { %>
+                            <span class="badge badge-stock">In stock: <%= p.getStock() %></span>
+                        <% } else { %>
+                            <span class="badge badge-out">Out of stock</span>
+                        <% } %>
+                    </div>
+                </article>
             <% } %>
         </div>
     <% } %>
+
+    <%@ include file="_footer.jsp" %>
 </div>
 </body>
 </html>

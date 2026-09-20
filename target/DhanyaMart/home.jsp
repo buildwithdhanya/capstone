@@ -29,15 +29,41 @@
 <div class="container page">
     <%@ include file="_nav.jsp" %>
 
-    <h1>Welcome, <%= esc(name) %>!</h1>
-    <p class="subtitle">Handcrafted crafts, handloom textiles and ethnic decor, straight from local artisans.</p>
+    <section class="hero">
+        <h1>Namaste, <%= esc(name) %>!</h1>
+        <p>Handcrafted crafts, handloom textiles and ethnic decor &mdash; straight from the looms and kilns of local artisans to your home.</p>
+        <div class="hero-actions">
+            <a href="products" class="btn btn-small icon-btn">Browse the collection &rarr;</a>
+            <% if (!"ADMIN".equals(role)) { %>
+            <a href="cart" class="btn btn-small ghost-white">View my cart</a>
+            <% } %>
+        </div>
+    </section>
 
-    <div class="card">
-        <p><strong>Account:</strong> <%= esc(name) %> (<%= esc(name != null ? role : "") %>)</p>
-        <p><strong>Email:</strong> <%= session.getAttribute("email") %></p>
-        <p><strong>Member since:</strong> logged in with ID <%= userId %></p>
+    <% if ("ADMIN".equals(role) || "SELLER".equals(role)) { %>
+    <div class="grid grid-3">
+        <% if ("SELLER".equals(role) || "ADMIN".equals(role)) { %>
+        <a href="seller/products" class="card link-card">
+            <h3>Seller Dashboard</h3>
+            <p>Add, edit and manage the products you sell.</p>
+        </a>
+        <% } %>
+        <% if ("ADMIN".equals(role)) { %>
+        <a href="admin" class="card link-card">
+            <h3>Admin Dashboard</h3>
+            <p>Manage users, products and orders across the store.</p>
+        </a>
+        <% } %>
+        <a href="orders" class="card link-card">
+            <h3>My Orders</h3>
+            <p>Track placed orders and their current status.</p>
+        </a>
+        <a href="products" class="card link-card">
+            <h3>Browse Products</h3>
+            <p>Explore the full catalogue of crafts, handlooms, pottery and more.</p>
+        </a>
     </div>
-
+    <% } else { %>
     <div class="grid grid-3">
         <a href="products" class="card link-card">
             <h3>Browse Products</h3>
@@ -51,21 +77,10 @@
             <h3>My Orders</h3>
             <p>Track placed orders and their current status.</p>
         </a>
-        <% if ("SELLER".equals(role) || "ADMIN".equals(role)) { %>
-        <a href="seller/products" class="card link-card">
-            <h3>Seller Dashboard</h3>
-            <p>Add, edit and manage the products you sell.</p>
-        </a>
-        <% } %>
-        <% if ("ADMIN".equals(role)) { %>
-        <a href="admin" class="card link-card">
-            <h3>Admin Dashboard</h3>
-            <p>Manage users, products and orders across the store.</p>
-        </a>
-        <% } %>
     </div>
+    <% } %>
 
-    <p class="switch"><a href="products">Start shopping &rarr;</a></p>
+    <%@ include file="_footer.jsp" %>
 </div>
 </body>
 </html>

@@ -17,8 +17,9 @@
 </head>
 <body>
 <div class="container">
+    <div class="brand-mark">D</div>
     <h1>DhanyaMart</h1>
-    <p class="subtitle">Login to your account</p>
+    <p class="subtitle">Handcrafted crafts from Indian artisans &mdash; sign in to continue.</p>
 
     <%
         String error = (String) request.getAttribute("error");

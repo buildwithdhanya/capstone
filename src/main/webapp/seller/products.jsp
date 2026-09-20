@@ -90,6 +90,8 @@
             </tbody>
         </table>
     <% } %>
+
+    <%@ include file="/_footer.jsp" %>
 </div>
 </body>
 </html>

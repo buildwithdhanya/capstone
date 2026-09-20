@@ -120,7 +120,7 @@ public class SellerProductServlet extends HttpServlet {
             redirectMsg(request, response, productId, "invalid-stock");
             return;
         }
-        if (!image.isBlank() && !image.matches("^images/products/[a-zA-Z0-9._-]+\\.svg$")
+        if (!image.isBlank() && !image.matches("^images/products/[a-zA-Z0-9._-]+\\.(svg|jpe?g|png|gif|webp)$")
                 && !image.startsWith("https://") && !image.startsWith("http://")) {
             redirectMsg(request, response, productId, "invalid-image");
             return;

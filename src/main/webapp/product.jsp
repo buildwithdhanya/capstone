@@ -55,7 +55,7 @@
     <% } %>
 
     <div class="detail-row">
-        <div class="detail-image">
+        <div class="detail-frame">
             <img src="<%= esc(product.getImage()) %>" alt="<%= esc(product.getName()) %>">
         </div>
         <div class="detail-info">
@@ -115,7 +115,7 @@
             <div class="form-group">
                 <label for="comment">Your review</label>
                 <textarea id="comment" name="comment" rows="3"
-                          placeholder="How was the quality, taste and delivery?"></textarea>
+                          placeholder="How was the craftsmanship, quality and delivery?"></textarea>
             </div>
             <button type="submit" class="btn btn-small">Submit Review</button>
         </form>
@@ -129,12 +129,14 @@
                 <div class="card review-item">
                     <p class="stars"><%= stars(r.getRating()) %></p>
                     <p><strong><%= esc(r.getUserName()) %></strong>
-                        <span class="muted"> - <%= esc(r.getCreatedAt()) %></span></p>
-                    <p><%= esc(r.getComment()) %></p>
+                        <span class="meta"> - <%= esc(r.getCreatedAt()) %></span></p>
+                    <p class="comment"><%= esc(r.getComment()) %></p>
                 </div>
             <% } %>
         </div>
     <% } %>
+
+    <%@ include file="_footer.jsp" %>
 </div>
 
 <script>

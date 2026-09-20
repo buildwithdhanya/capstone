@@ -68,6 +68,8 @@
         <a href="orders" class="btn btn-small">My Orders</a>
         <a href="products" class="btn btn-small btn-ghost">Continue Shopping</a>
     </div>
+
+    <%@ include file="_footer.jsp" %>
 </div>
 </body>
 </html>

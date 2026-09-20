@@ -69,7 +69,7 @@
         <div class="form-group">
             <label for="name">Product Name</label>
             <input type="text" id="name" name="name" value="<%= esc(fName) %>"
-                   placeholder="e.g. Basmati Rice 5kg" autofocus>
+                   placeholder="e.g. Handwoven Pichwai Painting" autofocus>
         </div>
 
         <div class="form-group">
@@ -104,10 +104,10 @@
         <div class="form-group">
             <label for="image">Image</label>
             <input type="text" id="image" name="image" value="<%= esc(fImage) %>"
-                   placeholder="images/products/generic.svg or an http(s) URL">
+                   placeholder="images/products/wood.jpg or an http(s) URL">
             <p class="muted">Leave as the default or use one of the bundled images
-                (images/products/rice.svg, dal.svg, pulses.svg, spices.svg, oil.svg,
-                ghee.svg, pickle.svg, snacks.svg, coffee.svg, honey.svg, generic.svg)
+                (art.jpg, painting.jpg, textile.jpg, pottery.jpg, diya.jpg, tiles.jpg,
+                brass.jpg, wood.jpg, basket.jpg, jewellery.jpg, generic.svg)
                 or any public image URL.</p>
         </div>
 
@@ -116,6 +116,8 @@
             <a href="seller/products" class="btn btn-small btn-ghost">Cancel</a>
         </div>
     </form>
+
+    <%@ include file="/_footer.jsp" %>
 </div>
 
 <script>

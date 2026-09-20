@@ -94,6 +94,8 @@
         </div>
     </div>
     <p class="switch"><a href="cart">&larr; Back to cart</a></p>
+
+    <%@ include file="_footer.jsp" %>
 </div>
 
 <script>
