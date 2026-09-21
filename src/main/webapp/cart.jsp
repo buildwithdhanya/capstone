@@ -19,6 +19,8 @@
     List<CartItem> items = (List<CartItem>) request.getAttribute("cartItems");
     Double total = (Double) request.getAttribute("cartTotal");
     String msg = request.getParameter("msg");
+    String notice = (String) request.getAttribute("cartNotice");
+    if (total == null) total = 0.0;
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,7 +36,9 @@
 
     <h1>Shopping Cart</h1>
 
-    <% if ("stock".equals(msg)) { %>
+    <% if (notice != null) { %>
+        <div class="alert alert-warn"><%= notice %></div>
+    <% } else if ("stock".equals(msg)) { %>
         <div class="alert alert-error">Some items exceed the available stock. Please adjust the quantity.</div>
     <% } else if ("unavailable".equals(msg)) { %>
         <div class="alert alert-error">Some items are no longer available. Please review your cart.</div>

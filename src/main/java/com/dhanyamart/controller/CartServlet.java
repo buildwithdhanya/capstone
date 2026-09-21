@@ -44,7 +44,33 @@ public class CartServlet extends HttpServlet {
         Map<Integer, Integer> cart = cart(session);
         List<CartItem> items = new ArrayList<>();
         double total = 0.0;
+        StringBuilder notice = new StringBuilder();
         if (cart != null) {
+            // Re-sync the cart with the live catalogue: drop items that no
+            // longer exist / are out of stock and clamp over-bought quantities.
+            List<Integer> toRemove = new ArrayList<>();
+            for (Map.Entry<Integer, Integer> entry : cart.entrySet()) {
+                Product product = productDAO.findById(entry.getKey());
+                if (product == null) {
+                    toRemove.add(entry.getKey());
+                    continue;
+                }
+                if (product.getStock() <= 0) {
+                    toRemove.add(entry.getKey());
+                    continue;
+                }
+                if (entry.getValue() > product.getStock()) {
+                    int oldQty = entry.getValue();
+                    cart.put(entry.getKey(), product.getStock());
+                    notice.append("<span class=\"meta\">").append(esc(product.getName()))
+                            .append(" - only ").append(product.getStock())
+                            .append(" in stock. Quantity updated.</span><br>");
+                    entry.setValue(product.getStock());
+                }
+            }
+            for (Integer id : toRemove) {
+                cart.remove(id);
+            }
             for (Map.Entry<Integer, Integer> entry : cart.entrySet()) {
                 Product product = productDAO.findById(entry.getKey());
                 if (product == null) continue;
@@ -53,9 +79,19 @@ public class CartServlet extends HttpServlet {
                 total += item.getSubtotal();
             }
         }
+        if (notice.length() > 0) {
+            request.setAttribute("cartNotice", notice.toString());
+        }
         request.setAttribute("cartItems", items);
         request.setAttribute("cartTotal", total);
         request.getRequestDispatcher("cart.jsp").forward(request, response);
+    }
+
+    /** Minimal HTML escaping for notice text inserted into cart.jsp. */
+    private String esc(String value) {
+        if (value == null) return "";
+        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                    .replace("\"", "&quot;").replace("'", "&#39;");
     }
 
     @Override
