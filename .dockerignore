@@ -6,6 +6,5 @@ target/
 *.md
 Dockerfile
 render.yaml
-docker-entrypoint.sh
 data/
 *.log
