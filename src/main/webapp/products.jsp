@@ -21,9 +21,15 @@
     String q = (String) request.getAttribute("q");
     String cat = (String) request.getAttribute("cat");
     String sort = (String) request.getAttribute("sort");
+    Integer total = (Integer) request.getAttribute("total");
+    Integer page = (Integer) request.getAttribute("page");
+    Integer totalPages = (Integer) request.getAttribute("totalPages");
     if (q == null) q = "";
     if (cat == null) cat = "";
     if (sort == null) sort = "";
+    if (total == null) total = 0;
+    if (page == null) page = 1;
+    if (totalPages == null) totalPages = 1;
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -62,6 +68,7 @@
     <% if (products == null || products.isEmpty()) { %>
         <div class="alert alert-error">No products match your search.</div>
     <% } else { %>
+        <p class="subtitle" style="text-align:left"><%= total %> product<%= total == 1 ? "" : "s" %> found</p>
         <div class="grid grid-3 product-grid">
             <% for (Product p : products) { %>
                 <article class="card product-card">
@@ -90,6 +97,18 @@
                 </article>
             <% } %>
         </div>
+
+        <% if (totalPages > 1) { %>
+            <div class="pager">
+                <% if (page > 1) { %>
+                    <a class="btn btn-small" href="products?q=<%= esc(q) %>&cat=<%= esc(cat) %>&sort=<%= esc(sort) %>&page=<%= page - 1 %>">&larr; Previous</a>
+                <% } %>
+                <span class="pager-info">Page <%= page %> of <%= totalPages %></span>
+                <% if (page < totalPages) { %>
+                    <a class="btn btn-small" href="products?q=<%= esc(q) %>&cat=<%= esc(cat) %>&sort=<%= esc(sort) %>&page=<%= page + 1 %>">Next &rarr;</a>
+                <% } %>
+            </div>
+        <% } %>
     <% } %>
 
     <%@ include file="_footer.jsp" %>

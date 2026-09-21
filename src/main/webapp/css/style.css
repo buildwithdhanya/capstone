@@ -672,6 +672,21 @@ h1.page-title::after {
 .badge-warn    { background: #fdf3dc; color: #96701c; }
 .badge-info    { background: #e5eefb; color: var(--info); }
 
+/* ---------- Pagination ---------- */
+
+.pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 28px;
+}
+
+.pager-info {
+    font-size: 13px;
+    color: var(--muted);
+}
+
 /* ---------- Ratings ---------- */
 
 .rating-line {
