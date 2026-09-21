@@ -12,9 +12,10 @@ import java.util.List;
 
 /**
  * Product catalogue.
- *   GET /products            -> every product
- *   GET /products?q=rice     -> text search on name/description
- *   GET /products?cat=Spices -> filter by category (may be combined with q)
+ *   GET /products                  -> every product
+ *   GET /products?q=rice           -> text search on name/description
+ *   GET /products?cat=Spices       -> filter by category (may be combined with q)
+ *   GET /products?sort=price_asc   -> sort the result set (see ProductDAO.sortBy)
  */
 @WebServlet("/products")
 public class ProductsServlet extends HttpServlet {
@@ -34,11 +35,13 @@ public class ProductsServlet extends HttpServlet {
 
         String query = request.getParameter("q");
         String category = request.getParameter("cat");
+        String sort = request.getParameter("sort");
 
         // Keep the search box + filter dropdown filled with the current values.
         request.setAttribute("q", query == null ? "" : query);
         request.setAttribute("cat", category == null ? "" : category);
-        request.setAttribute("products", productDAO.search(query, category));
+        request.setAttribute("sort", sort == null ? "" : sort);
+        request.setAttribute("products", productDAO.search(query, category, sort));
         request.setAttribute("categories", productDAO.listCategories());
 
         request.getRequestDispatcher("products.jsp").forward(request, response);

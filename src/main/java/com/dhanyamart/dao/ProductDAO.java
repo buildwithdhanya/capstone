@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -43,9 +44,19 @@ public class ProductDAO {
 
     /**
      * Products matching an optional text query (name/description, case-insensitive)
-     * and an optional category (exact, case-insensitive). Null/blank means "all".
+     * and an optional category (exact, case-insensitive). Null/blank means "all",
+     * so is a blank sort key (file order is kept).
+     *
+     * @param query    free text search, or null for all
+     * @param category category filter, or null for all
+     * @param sort     one of "price_asc", "price_desc", "newest", "name", or null
      */
     public List<Product> search(String query, String category) {
+        return search(query, category, null);
+    }
+
+    /** Same as search(query, category) but sorts the result set. */
+    public List<Product> search(String query, String category, String sort) {
         List<Product> result = new ArrayList<>();
         String q = query == null ? "" : query.trim().toLowerCase();
         String cat = category == null ? "" : category.trim();
@@ -68,7 +79,34 @@ public class ProductDAO {
                 throw new RuntimeException("Could not read products.xlsx", e);
             }
         }
+        sortBy(result, sort);
         return result;
+    }
+
+    /** Applies the sort key to a product list (no-op when sort is null/blank). */
+    public void sortBy(List<Product> products, String sort) {
+        if (products == null || products.isEmpty() || sort == null || sort.isBlank()) {
+            return;
+        }
+        switch (sort.trim()) {
+            case "price_asc":
+                products.sort(Comparator.comparingDouble(Product::getPrice)
+                        .thenComparing(Product::getName, String.CASE_INSENSITIVE_ORDER));
+                break;
+            case "price_desc":
+                products.sort(Comparator.comparingDouble(Product::getPrice).reversed()
+                        .thenComparing(Product::getName, String.CASE_INSENSITIVE_ORDER));
+                break;
+            case "newest":
+                products.sort(Comparator.comparing(Product::getCreatedAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())));
+                break;
+            case "name":
+                products.sort(Comparator.comparing(Product::getName, String.CASE_INSENSITIVE_ORDER));
+                break;
+            default:
+                break;
+        }
     }
 
     /** Distinct categories (sorted), used for the filter dropdown. */

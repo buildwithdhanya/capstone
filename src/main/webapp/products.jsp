@@ -20,8 +20,10 @@
     List<String> categories = (List<String>) request.getAttribute("categories");
     String q = (String) request.getAttribute("q");
     String cat = (String) request.getAttribute("cat");
+    String sort = (String) request.getAttribute("sort");
     if (q == null) q = "";
     if (cat == null) cat = "";
+    if (sort == null) sort = "";
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,6 +48,13 @@
             <% for (String c : categories) { %>
                 <option value="<%= esc(c) %>" <%= c.equals(cat) ? "selected" : "" %>><%= esc(c) %></option>
             <% } %>
+        </select>
+        <select name="sort" class="search-select">
+            <option value="">Sort: Default</option>
+            <option value="newest" <%= "newest".equals(sort) ? "selected" : "" %>>Newest first</option>
+            <option value="price_asc" <%= "price_asc".equals(sort) ? "selected" : "" %>>Price: Low to High</option>
+            <option value="price_desc" <%= "price_desc".equals(sort) ? "selected" : "" %>>Price: High to Low</option>
+            <option value="name" <%= "name".equals(sort) ? "selected" : "" %>>Name A-Z</option>
         </select>
         <button type="submit" class="btn btn-small">Search</button>
     </form>
