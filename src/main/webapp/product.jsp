@@ -48,6 +48,8 @@
         <div class="alert alert-success">Added to cart! <a href="cart">View cart</a></div>
     <% } else if ("reviewed".equals(msg)) { %>
         <div class="alert alert-success">Thank you! Your review was saved.</div>
+    <% } else if ("deleted-review".equals(msg)) { %>
+        <div class="alert alert-success">Your review was deleted.</div>
     <% } else if ("invalid-rating".equals(msg)) { %>
         <div class="alert alert-error">Please choose a star rating between 1 and 5.</div>
     <% } else if ("invalid-comment".equals(msg)) { %>
@@ -131,6 +133,15 @@
                     <p><strong><%= esc(r.getUserName()) %></strong>
                         <span class="meta"> - <%= esc(r.getCreatedAt()) %></span></p>
                     <p class="comment"><%= esc(r.getComment()) %></p>
+                    <% if (r.getUserId() == userId) { %>
+                        <form action="review" method="post" class="inline-form"
+                              onsubmit="return confirm('Delete your review?');">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="reviewId" value="<%= r.getReviewId() %>">
+                            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                            <button type="submit" class="btn btn-small btn-danger">Delete my review</button>
+                        </form>
+                    <% } %>
                 </div>
             <% } %>
         </div>

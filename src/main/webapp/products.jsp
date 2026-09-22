@@ -22,13 +22,13 @@
     String cat = (String) request.getAttribute("cat");
     String sort = (String) request.getAttribute("sort");
     Integer total = (Integer) request.getAttribute("total");
-    Integer page = (Integer) request.getAttribute("page");
+    Integer pageNo = (Integer) request.getAttribute("page");
     Integer totalPages = (Integer) request.getAttribute("totalPages");
     if (q == null) q = "";
     if (cat == null) cat = "";
     if (sort == null) sort = "";
     if (total == null) total = 0;
-    if (page == null) page = 1;
+    if (pageNo == null) pageNo = 1;
     if (totalPages == null) totalPages = 1;
 %>
 <!DOCTYPE html>
@@ -100,12 +100,12 @@
 
         <% if (totalPages > 1) { %>
             <div class="pager">
-                <% if (page > 1) { %>
-                    <a class="btn btn-small" href="products?q=<%= esc(q) %>&cat=<%= esc(cat) %>&sort=<%= esc(sort) %>&page=<%= page - 1 %>">&larr; Previous</a>
+                <% if (pageNo > 1) { %>
+                    <a class="btn btn-small" href="products?q=<%= esc(q) %>&cat=<%= esc(cat) %>&sort=<%= esc(sort) %>&page=<%= pageNo - 1 %>">&larr; Previous</a>
                 <% } %>
-                <span class="pager-info">Page <%= page %> of <%= totalPages %></span>
-                <% if (page < totalPages) { %>
-                    <a class="btn btn-small" href="products?q=<%= esc(q) %>&cat=<%= esc(cat) %>&sort=<%= esc(sort) %>&page=<%= page + 1 %>">Next &rarr;</a>
+                <span class="pager-info">Page <%= pageNo %> of <%= totalPages %></span>
+                <% if (pageNo < totalPages) { %>
+                    <a class="btn btn-small" href="products?q=<%= esc(q) %>&cat=<%= esc(cat) %>&sort=<%= esc(sort) %>&page=<%= pageNo + 1 %>">Next &rarr;</a>
                 <% } %>
             </div>
         <% } %>

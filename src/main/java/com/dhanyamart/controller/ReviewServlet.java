@@ -12,7 +12,8 @@ import java.io.IOException;
 
 /**
  * Handles a product review.
- *   POST /review  parms: productId, rating, comment
+ *   POST /review  parms: productId, rating, comment          -> add/replace rating
+ *   POST /review  action=delete, reviewId, productId         -> delete own review
  * Saves (or replaces) the current user's rating then returns to the product.
  */
 @WebServlet("/review")
@@ -28,6 +29,11 @@ public class ReviewServlet extends HttpServlet {
                 ? request.getSession(false).getAttribute("user_id") : null);
         if (userId == null) {
             response.sendRedirect("login.jsp");
+            return;
+        }
+
+        if ("delete".equals(request.getParameter("action"))) {
+            handleDelete(request, response, userId);
             return;
         }
 
@@ -60,6 +66,23 @@ public class ReviewServlet extends HttpServlet {
 
         reviewDAO.addOrUpdate(review);
         response.sendRedirect("product?id=" + productId + "&msg=reviewed");
+    }
+
+    /**
+     * A customer may delete only their own review. Ownership is re-checked
+     * against the database before the row is removed.
+     */
+    private void handleDelete(HttpServletRequest request, HttpServletResponse response,
+                              int userId) throws IOException {
+        int reviewId = parseId(request.getParameter("reviewId"));
+        int productId = parseId(request.getParameter("productId"));
+        Review review = reviewDAO.findById(reviewId);
+        if (review != null && review.getUserId() == userId
+                && review.getProductId() == productId && reviewDAO.delete(reviewId)) {
+            response.sendRedirect("product?id=" + productId + "&msg=deleted-review");
+        } else {
+            response.sendRedirect("product?id=" + productId);
+        }
     }
 
     private int parseId(String value) {

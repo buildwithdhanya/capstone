@@ -10,12 +10,12 @@
     <version>1.0.0</version>
     <packaging>war</packaging>
     <name>DhanyaMart</name>
-    <description>E-commerce capstone - authentication module with Excel storage</description>
+    <description>E-commerce capstone - authentication module with MySQL 8 storage (JDBC)</description>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <poi.version>5.2.5</poi.version>
+        <mysql.connector.version>8.4.0</mysql.connector.version>
     </properties>
 
     <dependencies>
@@ -28,13 +28,12 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Apache POI: read/write Excel (.xlsx) files -->
-        <!-- This single dependency also brings in poi, poi-ooxml-lite, xmlbeans,
-             commons-collections4, commons-compress, log4j-api, etc. automatically -->
+        <!-- MySQL 8 JDBC driver (Connector/J). Used by DBConnection and all DAOs
+             via java.sql JDBC + prepared statements. -->
         <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>${poi.version}</version>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql.connector.version}</version>
         </dependency>
 
     </dependencies>

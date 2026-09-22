@@ -21,6 +21,8 @@ import java.util.List;
  *   POST /admin action=updateRole    (userId, role)
  *   POST /admin action=updateStatus  (orderId, status)
  *   POST /admin action=deleteProduct (id)
+ *   POST /admin action=deleteUser    (userId)
+ *   POST /admin action=deleteOrder   (orderId)
  *
  * Only the ADMIN role may access this servlet.
  */
@@ -75,6 +77,26 @@ public class AdminServlet extends HttpServlet {
             int productId = CellUtil.parseInt(request.getParameter("id"));
             productDAO.delete(productId);
             response.sendRedirect("admin?tab=products");
+            return;
+        }
+        if ("deleteUser".equals(action)) {
+            int userId = CellUtil.parseInt(request.getParameter("userId"));
+            int me = (Integer) session.getAttribute("user_id");
+            // Never let an admin delete the currently logged-in account.
+            if (userId != me && userDAO.delete(userId)) {
+                response.sendRedirect("admin?tab=users&msg=user-deleted");
+            } else {
+                response.sendRedirect("admin?tab=users&msg=delete-failed");
+            }
+            return;
+        }
+        if ("deleteOrder".equals(action)) {
+            int orderId = CellUtil.parseInt(request.getParameter("orderId"));
+            if (orderDAO.delete(orderId)) {
+                response.sendRedirect("admin?tab=orders&msg=order-deleted");
+            } else {
+                response.sendRedirect("admin?tab=orders&msg=delete-failed");
+            }
             return;
         }
         response.sendRedirect("admin");

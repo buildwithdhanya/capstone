@@ -1,51 +1,43 @@
 package com.dhanyamart.dao;
 
 import com.dhanyamart.model.Product;
-import com.dhanyamart.util.CellUtil;
-import com.dhanyamart.util.ExcelUtil;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import com.dhanyamart.util.DBConnection;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.TreeSet;
 
 /**
- * Data Access Object - every operation that touches products.xlsx goes through
- * this class (add / edit / delete / search / stock management).
+ * Data Access Object - every operation that touches the MySQL {@code products}
+ * table goes through this class (add / edit / delete / search / stock management).
+ *
+ * All SQL uses prepared statements and the WHERE clauses for search/filter are
+ * built dynamically with parameters - no string concatenation of user input.
  */
 public class ProductDAO {
+
+    public static final String DEFAULT_IMAGE = "images/products/generic.svg";
 
     private static final DateTimeFormatter TIMESTAMP =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    // Column indexes must match ExcelUtil.PRODUCT_HEADERS
-    private static final int COL_ID = 0;
-    private static final int COL_SELLER_ID = 1;
-    private static final int COL_NAME = 2;
-    private static final int COL_CATEGORY = 3;
-    private static final int COL_DESCRIPTION = 4;
-    private static final int COL_PRICE = 5;
-    private static final int COL_STOCK = 6;
-    private static final int COL_IMAGE = 7;
-    private static final int COL_CREATED_AT = 8;
+    private static final String COLUMNS =
+            "product_id, seller_id, name, category, description, price, stock, image, created_at";
 
-    public static final String DEFAULT_IMAGE = "images/products/generic.svg";
-
-    /** All products, in file order. */
+    /** All products. */
     public List<Product> listAll() {
         return search(null, null);
     }
 
     /**
      * Products matching an optional text query (name/description, case-insensitive)
-     * and an optional category (exact, case-insensitive). Null/blank means "all",
-     * so is a blank sort key (file order is kept).
+     * and an optional category (exact, case-insensitive). Null/blank means "all".
      *
      * @param query    free text search, or null for all
      * @param category category filter, or null for all
@@ -55,35 +47,66 @@ public class ProductDAO {
         return search(query, category, null);
     }
 
-    /** Same as search(query, category) but sorts the result set. */
+    /** Same as search(query, category) but sorts the result set in SQL. */
     public List<Product> search(String query, String category, String sort) {
-        List<Product> result = new ArrayList<>();
-        String q = query == null ? "" : query.trim().toLowerCase();
+        List<Object> params = new ArrayList<>();
+        List<String> conds = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT " + COLUMNS + " FROM products");
+
         String cat = category == null ? "" : category.trim();
-        synchronized (ExcelUtil.LOCK) {
-            try (Workbook wb = ExcelUtil.openOrCreate("products.xlsx", "products", ExcelUtil.PRODUCT_HEADERS)) {
-                for (Row row : wb.getSheetAt(0)) {
-                    if (row.getRowNum() == 0) continue;
-                    Product p = rowToProduct(row);
-                    if (!cat.isEmpty() && !p.getCategory().equalsIgnoreCase(cat)) {
-                        continue;
-                    }
-                    if (!q.isEmpty()) {
-                        boolean match = p.getName().toLowerCase().contains(q)
-                                || p.getDescription().toLowerCase().contains(q);
-                        if (!match) continue;
-                    }
-                    result.add(p);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Could not read products.xlsx", e);
-            }
+        String q = query == null ? "" : query.trim().toLowerCase();
+
+        if (!cat.isEmpty()) {
+            conds.add("LOWER(category) = LOWER(?)");
+            params.add(cat);
         }
-        sortBy(result, sort);
+        if (!q.isEmpty()) {
+            conds.add("(LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
+            params.add("%" + q + "%");
+            params.add("%" + q + "%");
+        }
+        if (!conds.isEmpty()) {
+            sql.append(" WHERE ").append(String.join(" AND ", conds));
+        }
+        sql.append(' ').append(orderBy(sort));
+
+        List<Product> result = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(rowToProduct(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not search products in MySQL", e);
+        }
         return result;
     }
 
-    /** Applies the sort key to a product list (no-op when sort is null/blank). */
+    /** Maps a sort key to an SQL ORDER BY clause (no-op sorts by id). */
+    private String orderBy(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "ORDER BY product_id";
+        }
+        switch (sort.trim()) {
+            case "price_asc":
+                return "ORDER BY price ASC, name ASC";
+            case "price_desc":
+                return "ORDER BY price DESC, name ASC";
+            case "newest":
+                return "ORDER BY created_at DESC, product_id DESC";
+            case "name":
+                return "ORDER BY name ASC";
+            default:
+                return "ORDER BY product_id";
+        }
+    }
+
+    /** Applies the sort key to a product list (kept for API compatibility). */
     public void sortBy(List<Product> products, String sort) {
         if (products == null || products.isEmpty() || sort == null || sort.isBlank()) {
             return;
@@ -111,153 +134,123 @@ public class ProductDAO {
 
     /** Distinct categories (sorted), used for the filter dropdown. */
     public List<String> listCategories() {
-        TreeSet<String> set = new TreeSet<>();
-        synchronized (ExcelUtil.LOCK) {
-            try (Workbook wb = ExcelUtil.openOrCreate("products.xlsx", "products", ExcelUtil.PRODUCT_HEADERS)) {
-                for (Row row : wb.getSheetAt(0)) {
-                    if (row.getRowNum() == 0) continue;
-                    String c = CellUtil.str(row, COL_CATEGORY);
-                    if (!c.isBlank()) set.add(c.trim());
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Could not read products.xlsx", e);
+        List<String> result = new ArrayList<>();
+        String sql = "SELECT DISTINCT category FROM products "
+                + "WHERE category IS NOT NULL AND TRIM(category) <> '' ORDER BY category";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                result.add(rs.getString(1));
             }
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not list product categories in MySQL", e);
         }
-        return new ArrayList<>(set);
+        return result;
     }
 
     public Product findById(int productId) {
-        synchronized (ExcelUtil.LOCK) {
-            try (Workbook wb = ExcelUtil.openOrCreate("products.xlsx", "products", ExcelUtil.PRODUCT_HEADERS)) {
-                for (Row row : wb.getSheetAt(0)) {
-                    if (row.getRowNum() == 0) continue;
-                    if (CellUtil.asInt(row, COL_ID) == productId) {
-                        return rowToProduct(row);
-                    }
+        String sql = "SELECT " + COLUMNS + " FROM products WHERE product_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rowToProduct(rs);
                 }
-            } catch (IOException e) {
-                throw new RuntimeException("Could not read products.xlsx", e);
             }
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not read product by id from MySQL", e);
         }
         return null;
     }
 
-    /** Adds a new product. The id is generated automatically. */
+    /** Adds a new product. The id is generated by MySQL auto-increment. */
     public boolean add(Product product) {
-        synchronized (ExcelUtil.LOCK) {
-            try (Workbook wb = ExcelUtil.openOrCreate("products.xlsx", "products", ExcelUtil.PRODUCT_HEADERS)) {
-                Sheet sheet = wb.getSheetAt(0);
-                int newId = nextId(sheet);
-                Row row = sheet.createRow(sheet.getLastRowNum() + 1);
-
-                row.createCell(COL_ID).setCellValue(newId);
-                row.createCell(COL_SELLER_ID).setCellValue(product.getSellerId());
-                row.createCell(COL_NAME).setCellValue(product.getName());
-                row.createCell(COL_CATEGORY).setCellValue(product.getCategory());
-                row.createCell(COL_DESCRIPTION).setCellValue(product.getDescription());
-                row.createCell(COL_PRICE).setCellValue(product.getPrice());
-                row.createCell(COL_STOCK).setCellValue(product.getStock());
-                row.createCell(COL_IMAGE).setCellValue(safeImage(product.getImage()));
-                row.createCell(COL_CREATED_AT).setCellValue(LocalDateTime.now().format(TIMESTAMP));
-
-                ExcelUtil.saveProducts(wb);
-                return true;
-            } catch (IOException e) {
-                throw new RuntimeException("Could not write products.xlsx", e);
+        String sql = "INSERT INTO products (seller_id, name, category, description, price, stock, image, created_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, product.getSellerId());
+            ps.setString(2, product.getName());
+            ps.setString(3, product.getCategory());
+            ps.setString(4, product.getDescription());
+            ps.setDouble(5, product.getPrice());
+            ps.setInt(6, product.getStock());
+            ps.setString(7, safeImage(product.getImage()));
+            if (ps.executeUpdate() == 0) {
+                return false;
             }
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    product.setProductId(keys.getInt(1));
+                }
+            }
+            return true;
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not add product in MySQL", e);
         }
     }
 
     /** Updates an existing product row (matched by product_id). */
     public boolean update(Product product) {
-        synchronized (ExcelUtil.LOCK) {
-            try (Workbook wb = ExcelUtil.openOrCreate("products.xlsx", "products", ExcelUtil.PRODUCT_HEADERS)) {
-                Sheet sheet = wb.getSheetAt(0);
-                for (Row row : sheet) {
-                    if (row.getRowNum() == 0) continue;
-                    if (CellUtil.asInt(row, COL_ID) == product.getProductId()) {
-                        row.getCell(COL_NAME).setCellValue(product.getName());
-                        row.getCell(COL_CATEGORY).setCellValue(product.getCategory());
-                        row.getCell(COL_DESCRIPTION).setCellValue(product.getDescription());
-                        row.getCell(COL_PRICE).setCellValue(product.getPrice());
-                        row.getCell(COL_STOCK).setCellValue(product.getStock());
-                        row.getCell(COL_IMAGE).setCellValue(safeImage(product.getImage()));
-                        ExcelUtil.saveProducts(wb);
-                        return true;
-                    }
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Could not write products.xlsx", e);
-            }
+        String sql = "UPDATE products SET name = ?, category = ?, description = ?, "
+                + "price = ?, stock = ?, image = ? WHERE product_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, product.getName());
+            ps.setString(2, product.getCategory());
+            ps.setString(3, product.getDescription());
+            ps.setDouble(4, product.getPrice());
+            ps.setInt(5, product.getStock());
+            ps.setString(6, safeImage(product.getImage()));
+            ps.setInt(7, product.getProductId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not update product in MySQL", e);
         }
-        return false;
     }
 
-    /** Deletes a product row (admin/seller action). */
+    /**
+     * Deletes a product row (admin/seller action). Reviews are removed by the
+     * {@code fk_reviews_product} CASCADE, while past {@code order_items} keep
+     * their snapshot (product_id set to NULL).
+     */
     public boolean delete(int productId) {
-        synchronized (ExcelUtil.LOCK) {
-            try (Workbook wb = ExcelUtil.openOrCreate("products.xlsx", "products", ExcelUtil.PRODUCT_HEADERS)) {
-                Sheet sheet = wb.getSheetAt(0);
-                for (Row row : sheet) {
-                    if (row.getRowNum() == 0) continue;
-                    if (CellUtil.asInt(row, COL_ID) == productId) {
-                        int rowIndex = row.getRowNum();
-                        sheet.removeRow(row);
-                        if (sheet.getLastRowNum() >= rowIndex) {
-                            sheet.shiftRows(rowIndex + 1, sheet.getLastRowNum(), -1);
-                        }
-                        ExcelUtil.saveProducts(wb);
-                        return true;
-                    }
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Could not write products.xlsx", e);
-            }
+        String sql = "DELETE FROM products WHERE product_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not delete product in MySQL", e);
         }
-        return false;
     }
 
-    /** Lowers the stock level after an order is placed. */
+    /** Lowers the stock level after an order is placed (never below zero). */
     public void decrementStock(int productId, int quantity) {
-        synchronized (ExcelUtil.LOCK) {
-            try (Workbook wb = ExcelUtil.openOrCreate("products.xlsx", "products", ExcelUtil.PRODUCT_HEADERS)) {
-                Sheet sheet = wb.getSheetAt(0);
-                for (Row row : sheet) {
-                    if (row.getRowNum() == 0) continue;
-                    if (CellUtil.asInt(row, COL_ID) == productId) {
-                        int stock = CellUtil.asInt(row, COL_STOCK);
-                        row.getCell(COL_STOCK).setCellValue(Math.max(0, stock - quantity));
-                        ExcelUtil.saveProducts(wb);
-                        return;
-                    }
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Could not write products.xlsx", e);
-            }
+        String sql = "UPDATE products SET stock = GREATEST(0, stock - ?) WHERE product_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, productId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not decrement stock in MySQL", e);
         }
     }
 
-    private int nextId(Sheet sheet) {
-        int max = 1000;
-        for (Row row : sheet) {
-            if (row.getRowNum() == 0) continue;
-            int id = CellUtil.asInt(row, COL_ID);
-            if (id > max) max = id;
-        }
-        return max + 1;
-    }
-
-    private Product rowToProduct(Row row) {
+    private Product rowToProduct(ResultSet rs) throws SQLException {
         Product p = new Product();
-        p.setProductId(CellUtil.asInt(row, COL_ID));
-        p.setSellerId(CellUtil.asInt(row, COL_SELLER_ID));
-        p.setName(CellUtil.str(row, COL_NAME));
-        p.setCategory(CellUtil.str(row, COL_CATEGORY));
-        p.setDescription(CellUtil.str(row, COL_DESCRIPTION));
-        p.setPrice(CellUtil.asDouble(row, COL_PRICE));
-        p.setStock(CellUtil.asInt(row, COL_STOCK));
-        p.setImage(safeImage(CellUtil.str(row, COL_IMAGE)));
-        p.setCreatedAt(CellUtil.str(row, COL_CREATED_AT));
+        p.setProductId(rs.getInt("product_id"));
+        p.setSellerId(rs.getInt("seller_id"));
+        p.setName(rs.getString("name"));
+        p.setCategory(rs.getString("category"));
+        p.setDescription(rs.getString("description"));
+        p.setPrice(rs.getDouble("price"));
+        p.setStock(rs.getInt("stock"));
+        p.setImage(safeImage(rs.getString("image")));
+        p.setCreatedAt(format(rs.getTimestamp("created_at")));
         return p;
     }
 
@@ -266,5 +259,12 @@ public class ProductDAO {
             return DEFAULT_IMAGE;
         }
         return image;
+    }
+
+    private String format(Timestamp ts) {
+        if (ts == null) {
+            return "";
+        }
+        return ts.toLocalDateTime().format(TIMESTAMP);
     }
 }

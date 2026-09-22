@@ -16,3 +16,6 @@ Thumbs.db
 
 # Local runtime data (Excel data files)
 dhanyamart-data/
+
+# Local MySQL credentials - keep out of git (set DB_PASSWORD env var instead)
+src/main/resources/db.properties

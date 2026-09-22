@@ -48,13 +48,22 @@
         <a href="admin?tab=orders" class="tab <%= "orders".equals(tab) ? "active" : "" %>">Orders</a>
     </div>
 
+<% String adminMsg = request.getParameter("msg");
+   if ("user-deleted".equals(adminMsg)) { %>
+    <div class="alert alert-success">User deleted.</div>
+<% } else if ("order-deleted".equals(adminMsg)) { %>
+    <div class="alert alert-success">Order deleted.</div>
+<% } else if ("delete-failed".equals(adminMsg)) { %>
+    <div class="alert alert-error">Delete failed. The record is still in use (e.g. a seller who owns products).</div>
+<% } %>
+
 <% if ("users".equals(tab)) {
     List<User> users = (List<User>) request.getAttribute("users"); %>
     <h2>Users</h2>
     <table class="table">
         <thead>
             <tr>
-                <th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Role</th>
+                <th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Role</th><th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -78,6 +87,18 @@
                                 <option value="ADMIN" <%= "ADMIN".equals(u.getRole()) ? "selected" : "" %>>ADMIN</option>
                             </select>
                         </form>
+                    <% } %>
+                </td>
+                <td class="cell-actions">
+                    <% if (u.getUserId() != currentUserId) { %>
+                        <form action="admin" method="post" class="inline-form"
+                              onsubmit="return confirm('Delete this user?');">
+                            <input type="hidden" name="action" value="deleteUser">
+                            <input type="hidden" name="userId" value="<%= u.getUserId() %>">
+                            <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                        </form>
+                    <% } else { %>
+                        <span class="muted">current</span>
                     <% } %>
                 </td>
             </tr>
@@ -120,7 +141,7 @@
     <h2>Orders</h2>
     <table class="table">
         <thead>
-            <tr><th>Order</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr>
+            <tr><th>Order</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr>
         </thead>
         <tbody>
         <% for (Order o : orders) { %>
@@ -141,6 +162,14 @@
                             <option value="DELIVERED" <%= "DELIVERED".equals(o.getStatus()) ? "selected" : "" %>>DELIVERED</option>
                             <option value="CANCELLED" <%= "CANCELLED".equals(o.getStatus()) ? "selected" : "" %>>CANCELLED</option>
                         </select>
+                    </form>
+                </td>
+                <td class="cell-actions">
+                    <form action="admin" method="post" class="inline-form"
+                          onsubmit="return confirm('Delete this order and its items?');">
+                        <input type="hidden" name="action" value="deleteOrder">
+                        <input type="hidden" name="orderId" value="<%= o.getOrderId() %>">
+                        <button type="submit" class="btn btn-small btn-danger">Delete</button>
                     </form>
                 </td>
             </tr>
